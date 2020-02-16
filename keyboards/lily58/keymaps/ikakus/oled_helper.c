@@ -5,9 +5,6 @@
   #include "lufa.h"
   #include "split_util.h"
 #endif
-#ifdef SSD1306OLED
-  #include "ssd1306.h"
-#endif
 
 extern uint8_t is_master;
 
@@ -21,17 +18,11 @@ bool linux_layout_enabled = false;
 
 
 void matrix_init_user(void) {
-    //SSD1306 OLED init, make sure to add #define SSD1306OLED in config.h
-    #ifdef SSD1306OLED
-        iota_gfx_init(!has_usb());   // turns on the display
-    #endif
-    
     strcpy(term_symbol, term_symbol_visible);
     timer = timer_read32();
 }
 
 //SSD1306 OLED update loop, make sure to add #define SSD1306OLED in config.h
-#ifdef SSD1306OLED
 
 // When add source files to SRC in rules.mk, you can use functions.
 const char *read_layer_state(void);
@@ -40,66 +31,39 @@ void set_keylog(uint16_t keycode, keyrecord_t *record);
 const char *read_keylog(void);
 const char *read_keylogs(void);
 
-void matrix_scan_user(void) {
-   iota_gfx_task();
+void oled_task_user(void) {
+   render_layout_state();
+   render_mod_state(get_mods()|get_oneshot_mods());
 }
 
-void matrix_render_user(struct CharacterMatrix *matrix) {
-  if (is_master) {
-    // If you want to change the display of OLED, you need to change here
+void render_mod_state(uint8_t modifiers) {
+  oled_write_P(PSTR("\nMods: "), false);
+  oled_write_P(PSTR("SHF"), (modifiers & MOD_MASK_SHIFT));
+  oled_write_P(PSTR(" "), false);
+  oled_write_P(PSTR("CTL"), (modifiers & MOD_MASK_CTRL));
+  oled_write_P(PSTR(" "), false);
+  oled_write_P(PSTR("ALT"), (modifiers & MOD_MASK_ALT));
+  oled_write_P(PSTR(" "), false);
+  oled_write_P(PSTR("GUI"), (modifiers & MOD_MASK_GUI));
+}
 
-    matrix_write_ln(matrix, read_layer_state());
-     if(linux_layout_enabled == true){
-    	matrix_write_ln(matrix, "Layout: LINUX");
-    }else{
-    	matrix_write_ln(matrix, "Layout: MAC");
-    }
-    //matrix_write_ln(matrix, "");
-    matrix_write(matrix, term_symbol);
-    matrix_write_ln(matrix, read_keylog());
-   
-  } else {
-    matrix_write_ln(matrix, read_layer_state());
-    matrix_write_ln(matrix, "");
-    matrix_write(matrix, term_symbol);
-    matrix_write_ln(matrix, read_keylog());
-    
+void render_layout_state(void) {
+  oled_write_P(PSTR("Layout: "), false);
+  switch (biton32(default_layer_state)) {
+      case _QWERTY_MAC:
+        oled_write_P(PSTR("Mac"), false);
+        break;
+      case _QWERTY_LINUX:
+        oled_write_P(PSTR("Linux"), false);
+        break;
+      default:
+        oled_write_ln_P(PSTR("Undefined"), false);
   }
 }
-
-void matrix_update(struct CharacterMatrix *dest, const struct CharacterMatrix *source) {
-  if (memcmp(dest->display, source->display, sizeof(dest->display))) {
-    memcpy(dest->display, source->display, sizeof(dest->display));
-    dest->dirty = true;
-  }
-}
-
-void iota_gfx_task_user(void) {
-  struct CharacterMatrix matrix;
-  matrix_clear(&matrix);
-  matrix_render_user(&matrix);
-  matrix_update(&display, &matrix);
-  
-  
-  if (timer_elapsed32(timer) > 500) {
-  	    timer = timer_read32();
-  		if(underscore_visible == true){
-  			strcpy(term_symbol, term_symbol_invisible);
-  			underscore_visible = false;
-  		}else{
-  			strcpy(term_symbol, term_symbol_visible);
-  			underscore_visible = true;
-  		}
-
-  }
-}
-#endif//SSD1306OLED
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
-#ifdef SSD1306OLED
     set_keylog(keycode, record);
-#endif
    // set_timelog();
   }
 

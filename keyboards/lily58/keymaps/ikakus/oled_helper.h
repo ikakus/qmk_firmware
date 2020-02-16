@@ -11,3 +11,7 @@ enum custom_keycodes {
   LOWER,
   RAISE
 };
+
+void render_mod_state(uint8_t modifiers);
+
+void render_layout_state(void);
