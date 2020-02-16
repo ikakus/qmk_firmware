@@ -19,14 +19,17 @@ char term_symbol_invisible [ ] = ">  ";
 char term_symbol [] = "   ";
 bool underscore_visible = true;
 bool keylogger_enabled = false; 
+bool linux_layout_enabled = false; 
 
-#define _QWERTY 0
-#define _LOWER 1
-#define _RAISE 2
+#define _QWERTY_MAC 0
+#define _QWERTY_LINUX 1
+#define _LOWER 2
+#define _RAISE 3
 
 
 enum custom_keycodes {
-  QWERTY = SAFE_RANGE,
+  QWERTY_MAC,
+  QWERTY_LINUX,
   LOWER,
   RAISE
 };
@@ -36,12 +39,20 @@ enum custom_keycodes {
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
-[_QWERTY] = LAYOUT(
+[_QWERTY_MAC] = LAYOUT(
 KC_GESC, KC_1, KC_2, KC_3, KC_4, KC_5,			 				KC_6, KC_7, KC_8, KC_9, KC_0, KC_BSPC,
 KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T, 			 				KC_Y, KC_U, KC_I, KC_O, KC_P, KC_BSLS,
-KC_CAPS, KC_A, KC_S, KC_D, KC_F, KC_G, 			 				KC_H, KC_J, KC_K, KC_L, KC_SCLN, KC_QUOT,
+KC_LGUI, KC_A, KC_S, KC_D, KC_F, KC_G, 			 				KC_H, KC_J, KC_K, KC_L, KC_SCLN, KC_QUOT,
 KC_LSFT, KC_Z, KC_X, KC_C, KC_V, KC_B, KC_LBRC,  		KC_LGUI, KC_N, KC_M, KC_COMM, KC_DOT, KC_SLSH, KC_RSFT,
-KC_LCTL, KC_LALT, MO(2), KC_SPC, 								KC_ENT, MO(1), KC_RALT, KC_RCTL
+KC_LCTL, KC_LALT, MO(3), KC_SPC, 								KC_ENT, MO(2), KC_RALT, KC_RCTL
+),
+
+[_QWERTY_LINUX] = LAYOUT(
+KC_GESC, KC_1, KC_2, KC_3, KC_4, KC_5,			 				KC_6, KC_7, KC_8, KC_9, KC_0, KC_BSPC,
+KC_TAB, KC_Q, KC_W, KC_E, KC_R, KC_T, 			 				KC_Y, KC_U, KC_I, KC_O, KC_P, KC_BSLS,
+KC_LCTL, KC_A, KC_S, KC_D, KC_F, KC_G, 			 				KC_H, KC_J, KC_K, KC_L, KC_SCLN, KC_QUOT,
+KC_LSFT, KC_Z, KC_X, KC_C, KC_V, KC_B, KC_LBRC,  		KC_NO, KC_N, KC_M, KC_COMM, KC_DOT, KC_SLSH, KC_RSFT,
+KC_LGUI, KC_LALT, MO(3), KC_SPC, 								KC_ENT, MO(2), KC_RALT, KC_RCTL
 ),
 	
 [_LOWER] = LAYOUT(
@@ -93,15 +104,15 @@ void matrix_render_user(struct CharacterMatrix *matrix) {
     // If you want to change the display of OLED, you need to change here
 
     matrix_write_ln(matrix, read_layer_state());
+     if(linux_layout_enabled == true){
+    	matrix_write_ln(matrix, "Layout: LINUX");
+    }else{
+    	matrix_write_ln(matrix, "Layout: MAC");
+    }
     //matrix_write_ln(matrix, "");
     matrix_write(matrix, term_symbol);
-    
-    if(keylogger_enabled == true){
-    	matrix_write_ln(matrix, read_keylogs());
-    }else{
-    	matrix_write_ln(matrix, read_keylog());
-    }
-    
+    matrix_write_ln(matrix, read_keylog());
+   
   } else {
     matrix_write_ln(matrix, read_layer_state());
     matrix_write_ln(matrix, "");
@@ -150,20 +161,17 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
   	case KC_F13:
   	if (record->event.pressed) {
-      if (keylogger_enabled == true) {
-        keylogger_enabled = false;
+      if (linux_layout_enabled == true) {
+        linux_layout_enabled = false;
+        set_single_persistent_default_layer(_QWERTY_MAC);
       }else{
-        keylogger_enabled = true;
+        linux_layout_enabled = true;
+        set_single_persistent_default_layer(_QWERTY_LINUX);
        }
       }
       return false;
       break;
-    case QWERTY:
-      if (record->event.pressed) {
-        set_single_persistent_default_layer(_QWERTY);
-      }
-      return false;
-      break;
+   
     case LOWER:
       if (record->event.pressed) {
         layer_on(_LOWER);
