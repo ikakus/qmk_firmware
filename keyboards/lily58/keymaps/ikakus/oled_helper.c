@@ -33,7 +33,21 @@ const char *read_keylogs(void);
 
 void oled_task_user(void) {
    render_layout_state();
+   render_layer_state();
    render_mod_state(get_mods()|get_oneshot_mods());
+}
+void render_layer_state(void) {
+  oled_write_P(PSTR("\nLayer:"), false);
+  bool lower = layer_state_is(_LOWER);
+  bool raise = layer_state_is(_RAISE);
+
+  if(lower){ 
+    oled_write_P(PSTR(" Lower "), true); 
+  } else if(raise){ 
+    oled_write_P(PSTR(" Raise "), true); 
+  } else { 
+    oled_write_P(PSTR(" Default"), false); 
+  }
 }
 
 void render_mod_state(uint8_t modifiers) {
