@@ -8,7 +8,8 @@
 
 extern uint8_t is_master;
 
-static uint32_t timer = 0;
+static uint32_t oled_timer = 0;
+static uint32_t oled_off_threshold = 15000;
 char term_symbol_visible [ ] = ">_ ";
 char term_symbol_invisible [ ] = ">  ";
 char term_symbol [] = "   ";
@@ -30,8 +31,14 @@ oled_rotation_t oled_init_user(oled_rotation_t rotation) {
 }
 
 void oled_task_user(void) {
- 	//strcpy(term_symbol, term_symbol_visible);
-	timer = timer_read32();
+
+ 	if (timer_elapsed32(oled_timer) > oled_off_threshold) {
+        oled_off();
+        return;
+    }
+    #ifndef SPLIT_KEYBOARD
+    else { oled_on(); }
+    #endif
 	
 	if (is_master) {
         render_status();
@@ -98,10 +105,9 @@ void render_logo(void) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
-    set_keylog(keycode, record);
-   // set_timelog();
+	oled_timer = timer_read32();
   }
-
+  
   switch (keycode) {
   	case KC_F13:
   	if (record->event.pressed) {
