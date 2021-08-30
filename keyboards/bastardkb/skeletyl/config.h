@@ -27,9 +27,9 @@
 #define MATRIX_COLS 5
 #define RGBLIGHT_LIMIT_VAL 180
 #define MATRIX_ROW_PINS { B5, F7, F6, B6 }
-#define MATRIX_COL_PINS { E6, C6, B1, B3, B2 }
+#define MATRIX_COL_PINS { B4, E6, C6, B1, B3 }
 
-#define DIODE_DIRECTION ROW2COL
+#define DIODE_DIRECTION COL2ROW
 
 #define RGB_DI_PIN D2
 #define RGBLED_NUM 36
@@ -41,7 +41,7 @@
 #define SOFT_SERIAL_PIN D0
 
 #define USB_POLLING_INTERVAL_MS 1
-#define MASTER_RIGHT
+#define MASTER_LEFT
 
 // RGB matrix support
 #ifdef RGB_MATRIX_ENABLE
