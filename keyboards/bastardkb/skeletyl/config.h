@@ -39,7 +39,7 @@
 #define DEBOUNCE 5
 
 #define SOFT_SERIAL_PIN D0
-#define TAPPING_TERM 150
+#define TAPPING_TERM 140
 
 #define USB_POLLING_INTERVAL_MS 1
 #define MASTER_LEFT
