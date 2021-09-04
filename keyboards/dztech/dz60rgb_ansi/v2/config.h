@@ -1,12 +1,11 @@
 #pragma once
 
 /* USB Device descriptor parameter */
-#define VENDOR_ID       0xFEED
-#define PRODUCT_ID      0x1220
+#define VENDOR_ID       0x445A
+#define PRODUCT_ID      0x1221
 #define DEVICE_VER      0x0002
 #define MANUFACTURER    DZTECH
 #define PRODUCT         DZ60RGB_ANSI
-#define DESCRIPTION     DZ60 AVR RGB keyboard
 
 /* key matrix size */
 #define MATRIX_ROWS 5
@@ -33,14 +32,12 @@
 #define DEBOUNCE 3
 
 /* disable these deprecated features by default */
-#ifndef LINK_TIME_OPTIMIZATION_ENABLE
-#    define NO_ACTION_MACRO
-#    define NO_ACTION_FUNCTION
-#endif
+#define NO_ACTION_MACRO
+#define NO_ACTION_FUNCTION
 
 #ifdef RGB_MATRIX_ENABLE
 #    define RGB_DISABLE_AFTER_TIMEOUT 0 // number of ticks to wait until disabling effects
-#    define RGB_DISABLE_WHEN_USB_SUSPENDED true // turn off effects when suspended
+#    define RGB_DISABLE_WHEN_USB_SUSPENDED // turn off effects when suspended
 #    define RGB_MATRIX_KEYPRESSES
 #    define RGB_MATRIX_FRAMEBUFFER_EFFECTS
 #    define DISABLE_RGB_MATRIX_GRADIENT_UP_DOWN
