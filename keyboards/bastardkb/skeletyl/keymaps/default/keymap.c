@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2021 Quentin LEBASTARD <qlebastard@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
       //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
       CTL_T(KC_A), KC_S,    KC_D,    KC_F,    KC_G,                                     KC_H,    KC_J,    KC_K,    KC_L, CTL_T(KC_SCLN),
       //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      SFT_T(KC_Z),    KC_X,    KC_C,    KC_V,    KC_B,                                  KC_N,    KC_M, KC_COMM,  KC_DOT, SFT_T(KC_SLSH), 
+      SFT_T(KC_Z),    KC_X,    KC_C,    KC_V,    KC_B,                                  KC_N,    KC_M, KC_COMM,  KC_DOT, SFT_T(KC_SLSH),
       //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                         KC_LCTRL, LT(2, KC_SPC),KC_LALT ,         KC_LGUI, MO(1), KC_ENT
                                           //`--------------------------'  `--------------------------'
@@ -37,7 +37,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
       //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
            KC_GESC, KC_4, KC_5, KC_6, KC_0,                                         KC_LEFT, KC_DOWN, KC_UP, KC_RIGHT, KC_BSPACE,
       //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-           KC_LSHIFT, KC_7, KC_8, KC_9, XXXXXXX,                                         XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_RSHIFT,
+           KC_LSHIFT, KC_7, KC_8, KC_9, XXXXXXX,                                     CG_TOGG , XXXXXXX, XXXXXXX, XXXXXXX, KC_RSHIFT,
       //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                         KC_LCTRL, MO(4),KC_LALT ,         KC_LGUI, KC_NO, KC_ENT
                                        //`--------------------------'  `--------------------------'
@@ -66,16 +66,16 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                         KC_LCTRL, KC_NO ,KC_LALT ,         KC_LGUI, KC_NO, KC_ENT
                                       //`--------------------------'  `--------------------------'
   ),
-  
+
   [4] = LAYOUT_split_3x5_3(
   //,-----------------------------------------------------.                    ,-----------------------------------------------------.
       XXXXXXX, KC_F1, KC_F2, KC_F3, KC_F10,                                     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, KC_F4,KC_F5 , KC_F6, KC_F11,                                     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+      KC_LCTRL, KC_F4, KC_F5 , KC_F6, KC_F11,                                     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-      XXXXXXX, KC_F7,KC_F8 ,KC_F9 , KC_F12,                                     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
+      KC_LSHIFT, KC_F7,KC_F8 ,KC_F9 , KC_F12,                                     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                         KC_LCTRL, KC_NO ,KC_LALT ,         KC_LGUI, KC_NO, KC_ENT
                                       //`--------------------------'  `--------------------------'
-  ) 
+  )
 };
