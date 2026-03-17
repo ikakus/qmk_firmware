@@ -7,34 +7,8 @@
 #define RP2040_BOOTLOADER_DOUBLE_TAP_RESET
 #define RP2040_BOOTLOADER_DOUBLE_TAP_RESET_TIMEOUT 200U
 
-/* ── Matrix Timing ── */
-#define DEBOUNCE 5
-#define MATRIX_IO_DELAY 30
-// USB_POLLING_INTERVAL_MS 1 (default)
-
-/* ── Tap / Hold Behavior ── */
-#define TAPPING_TERM 200
-
-
-
-
-
-
-
-
-
-
-
-/* ── Split ── */
-
-
-#define SPLIT_HAND_PIN GP25
-
-/* ── Split Sync ── */
-#define SPLIT_USB_DETECT
-#define SPLIT_LAYER_STATE_ENABLE
-#define SPLIT_MODS_ENABLE
 #define SPLIT_TRANSPORT_MIRROR
+#define SPLIT_POINTING_ENABLE
 
 /* ── PMW3360 SPI ── */
 #define SPI_DRIVER   SPID0
@@ -42,6 +16,7 @@
 #define SPI_MOSI_PIN GP3
 #define SPI_MISO_PIN GP4
 #define PMW33XX_CS_PIN GP5
+#define POINTING_DEVICE_RIGHT
 #define PMW33XX_CPI 1600
 #define ROTATIONAL_TRANSFORM_ANGLE -29
 #define POINTING_DEVICE_INVERT_X
