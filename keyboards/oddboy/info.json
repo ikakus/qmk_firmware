@@ -52,7 +52,7 @@
     "url": "",
     "features": {
         "bootmagic": true,
-        "mousekey": false,
+        "mousekey": true,
         "extrakey": true,
         "nkro": true,
         "tap_dance": false,
