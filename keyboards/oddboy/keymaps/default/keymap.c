@@ -3,7 +3,18 @@
 enum custom_keycodes {
     CPI_UP = SAFE_RANGE,
     CPI_DN,
+    SCR_MOD,
 };
+
+static bool scroll_mode = false;
+static int8_t scroll_accu_x = 0;
+static int8_t scroll_accu_y = 0;
+#define SCROLL_DIVISOR 100
+
+void keyboard_post_init_user(void) {
+    keymap_config.swap_lctl_lgui = true;
+    keymap_config.swap_rctl_rgui = true;
+}
 
 void pointing_device_init_user(void) {
     set_auto_mouse_layer(3);
@@ -19,9 +30,32 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             case CPI_DN:
                 pointing_device_set_cpi(pointing_device_get_cpi() - 200);
                 return false;
+            case SCR_MOD:
+                scroll_mode = true;
+                return false;
+        }
+    } else {
+        switch (keycode) {
+            case SCR_MOD:
+                scroll_mode = false;
+                return false;
         }
     }
     return true;
+}
+
+report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
+    if (scroll_mode) {
+        scroll_accu_x += mouse_report.x;
+        scroll_accu_y += mouse_report.y;
+        mouse_report.h = scroll_accu_x / SCROLL_DIVISOR;
+        mouse_report.v = -(scroll_accu_y / SCROLL_DIVISOR);
+        scroll_accu_x %= SCROLL_DIVISOR;
+        scroll_accu_y %= SCROLL_DIVISOR;
+        mouse_report.x = 0;
+        mouse_report.y = 0;
+    }
+    return mouse_report;
 }
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -50,7 +84,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [3] = LAYOUT(
       KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, CPI_UP, CPI_DN, KC_NO, KC_NO, KC_NO,
       KC_NO, KC_NO, KC_NO, KC_MS_BTN2, KC_MS_BTN1, KC_NO, KC_NO, KC_MS_BTN1, KC_MS_BTN2, KC_MS_BTN3, KC_NO, KC_NO,
-      KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,
+      KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, SCR_MOD, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,
       KC_NO, KC_LCTL, KC_ENT, KC_NO
   ),
 
