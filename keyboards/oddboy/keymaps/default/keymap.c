@@ -1,5 +1,10 @@
 #include QMK_KEYBOARD_H
 
+void pointing_device_init_user(void) {
+    set_auto_mouse_layer(3);
+    set_auto_mouse_enable(true);
+}
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [0] = LAYOUT(
@@ -24,8 +29,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
 
   [3] = LAYOUT(
-      KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_PGDN, KC_PGUP, KC_NO, KC_NO, KC_NO,
-      KC_NO, KC_NO, KC_NO, KC_MS_BTN2, KC_MS_BTN1, KC_NO, KC_MS_L, KC_MS_D, KC_MS_U, KC_MS_R, KC_NO, KC_NO,
+      KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,
+      KC_NO, KC_NO, KC_NO, KC_MS_BTN2, KC_MS_BTN1, KC_NO, KC_NO, KC_MS_BTN1, KC_MS_BTN2, KC_MS_BTN3, KC_NO, KC_NO,
       KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,
       KC_NO, KC_LCTL, KC_ENT, KC_NO
   ),
