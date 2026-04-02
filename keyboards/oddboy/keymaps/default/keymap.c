@@ -1,8 +1,27 @@
 #include QMK_KEYBOARD_H
 
+enum custom_keycodes {
+    CPI_UP = SAFE_RANGE,
+    CPI_DN,
+};
+
 void pointing_device_init_user(void) {
     set_auto_mouse_layer(3);
     set_auto_mouse_enable(true);
+}
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    if (record->event.pressed) {
+        switch (keycode) {
+            case CPI_UP:
+                pointing_device_set_cpi(pointing_device_get_cpi() + 200);
+                return false;
+            case CPI_DN:
+                pointing_device_set_cpi(pointing_device_get_cpi() - 200);
+                return false;
+        }
+    }
+    return true;
 }
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -29,7 +48,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
 
   [3] = LAYOUT(
-      KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,
+      KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, CPI_UP, CPI_DN, KC_NO, KC_NO, KC_NO,
       KC_NO, KC_NO, KC_NO, KC_MS_BTN2, KC_MS_BTN1, KC_NO, KC_NO, KC_MS_BTN1, KC_MS_BTN2, KC_MS_BTN3, KC_NO, KC_NO,
       KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO, KC_NO,
       KC_NO, KC_LCTL, KC_ENT, KC_NO
