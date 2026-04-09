@@ -7,9 +7,11 @@ enum custom_keycodes {
 };
 
 static bool scroll_mode = false;
-static int8_t scroll_accu_x = 0;
-static int8_t scroll_accu_y = 0;
+static int16_t scroll_accu_x = 0;
+static int16_t scroll_accu_y = 0;
+static int8_t scroll_axis = 0;  // 0=undecided, 1=horizontal, -1=vertical
 #define SCROLL_DIVISOR 100
+#define SCROLL_LOCK_THRESHOLD 50
 
 void keyboard_post_init_user(void) {
     keymap_config.swap_lctl_lgui = true;
@@ -38,6 +40,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         switch (keycode) {
             case SCR_MOD:
                 scroll_mode = false;
+                scroll_axis = 0;
+                scroll_accu_x = 0;
+                scroll_accu_y = 0;
                 return false;
         }
     }
@@ -48,10 +53,24 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
     if (scroll_mode) {
         scroll_accu_x += mouse_report.x;
         scroll_accu_y += mouse_report.y;
-        mouse_report.h = scroll_accu_x / SCROLL_DIVISOR;
-        mouse_report.v = -(scroll_accu_y / SCROLL_DIVISOR);
-        scroll_accu_x %= SCROLL_DIVISOR;
-        scroll_accu_y %= SCROLL_DIVISOR;
+
+        if (scroll_axis == 0) {
+            if (abs(scroll_accu_x) > SCROLL_LOCK_THRESHOLD)
+                scroll_axis = 1;
+            else if (abs(scroll_accu_y) > SCROLL_LOCK_THRESHOLD)
+                scroll_axis = -1;
+        }
+
+        if (scroll_axis == 1) {
+            mouse_report.h = scroll_accu_x / SCROLL_DIVISOR;
+            scroll_accu_x %= SCROLL_DIVISOR;
+            scroll_accu_y = 0;
+        } else if (scroll_axis == -1) {
+            mouse_report.v = -(scroll_accu_y / SCROLL_DIVISOR);
+            scroll_accu_y %= SCROLL_DIVISOR;
+            scroll_accu_x = 0;
+        }
+
         mouse_report.x = 0;
         mouse_report.y = 0;
     }
