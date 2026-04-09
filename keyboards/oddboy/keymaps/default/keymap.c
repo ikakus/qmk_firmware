@@ -25,9 +25,6 @@ void pointing_device_init_user(void) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     if (record->event.pressed) {
-        if (layer_state_is(3) && keycode == CTL_T(KC_A)) {
-            layer_off(3);
-        }
         switch (keycode) {
             case CPI_UP:
                 pointing_device_set_cpi(pointing_device_get_cpi() + 200);
@@ -40,6 +37,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 return false;
         }
     } else {
+        if (layer_state_is(3) && keycode == CTL_T(KC_A)) {
+            layer_off(3);
+        }
         switch (keycode) {
             case SCR_MOD:
                 scroll_mode = false;
