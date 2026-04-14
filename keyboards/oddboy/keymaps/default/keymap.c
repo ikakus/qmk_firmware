@@ -1,4 +1,5 @@
 #include QMK_KEYBOARD_H
+#include "os_detection.h"
 
 enum custom_keycodes {
     CPI_UP = SAFE_RANGE,
@@ -14,9 +15,11 @@ static int8_t scroll_axis = 0;  // 0=undecided, 1=horizontal, -1=vertical
 #define SCROLL_DIVISOR 100
 #define SCROLL_LOCK_THRESHOLD 50
 
-void keyboard_post_init_user(void) {
-    keymap_config.swap_lctl_lgui = true;
-    keymap_config.swap_rctl_rgui = true;
+
+void os_detection_notify_usb_device_os(os_variant_t detected_os) {
+    bool is_mac = (detected_os == OS_MACOS || detected_os == OS_IOS);
+    keymap_config.swap_lctl_lgui = is_mac;
+    keymap_config.swap_rctl_rgui = is_mac;
 }
 
 void pointing_device_init_user(void) {
@@ -53,7 +56,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     if (record->event.pressed) {
         switch (keycode) {
             case MAC_BACK:
-                tap_code16(LGUI(KC_LBRC));
+                if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS) {
+                    tap_code16(LGUI(KC_LBRC));
+                } else {
+                    tap_code16(KC_WBAK);
+                }
                 return false;
         }
     }
@@ -100,7 +107,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [1] = LAYOUT(
         KC_NO, KC_NO  , KC_1, KC_2, KC_3, KC_NO,    KC_NO  , KC_NO  , KC_NO, KC_NO   , KC_NO  , KC_NO,
         KC_TRNS, QK_GESC, KC_4, KC_5, KC_6, KC_0,    KC_LEFT, KC_DOWN, KC_UP, KC_RIGHT, KC_BSPC, KC_NO,
-        KC_TRNS, KC_LSFT, KC_7, KC_8, KC_9, KC_NO,    CG_TOGG, KC_NO  , KC_NO, KC_NO   , KC_RSFT, KC_NO,
+        KC_TRNS, KC_LSFT, KC_7, KC_8, KC_9, KC_NO,    KC_NO  , KC_NO  , KC_NO, KC_NO   , KC_RSFT, KC_NO,
         MO(4), KC_TRNS,    KC_TRNS , KC_NO
     ),
 
