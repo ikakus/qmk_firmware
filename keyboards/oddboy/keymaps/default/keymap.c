@@ -4,6 +4,7 @@ enum custom_keycodes {
     CPI_UP = SAFE_RANGE,
     CPI_DN,
     SCR_MOD,
+    MAC_BACK,
 };
 
 static bool scroll_mode = false;
@@ -46,6 +47,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 scroll_axis = 0;
                 scroll_accu_x = 0;
                 scroll_accu_y = 0;
+                return false;
+        }
+    }
+    if (record->event.pressed) {
+        switch (keycode) {
+            case MAC_BACK:
+                tap_code16(LGUI(KC_LBRC));
                 return false;
         }
     }
@@ -99,7 +107,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [2] = LAYOUT(
         KC_NO, QK_GESC, KC_NO , KC_NO, KC_NO, KC_NO,    KC_GRAVE, KC_MINS, KC_EQL , KC_NO, KC_NO  , KC_NO,
         KC_NO, KC_LCTL, KC_TAB, KC_MPRV, KC_MPLY, KC_MNXT,    KC_NO   , KC_LBRC, KC_RBRC, KC_NO, KC_QUOT, KC_NO,
-        KC_TRNS, KC_LSFT, KC_WBAK , KC_VOLD, KC_VOLU, KC_NO,  KC_NO   , KC_LPRN, KC_RPRN, KC_NO, KC_BSLS, KC_NO,
+        KC_TRNS, KC_LSFT, MAC_BACK, KC_VOLD, KC_VOLU, KC_NO,  KC_NO   , KC_LPRN, KC_RPRN, KC_NO, KC_BSLS, KC_NO,
         KC_NO, KC_TRNS,    KC_TRNS  , MO(3)
     ),
 
