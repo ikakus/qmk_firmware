@@ -15,11 +15,22 @@ static int8_t scroll_axis = 0;  // 0=undecided, 1=horizontal, -1=vertical
 #define SCROLL_DIVISOR 100
 #define SCROLL_LOCK_THRESHOLD 50
 
+void keyboard_post_init_user(void) {
+    keymap_config.swap_lctl_lgui = true;
+    keymap_config.swap_rctl_rgui = true;
+}
 
-void os_detection_notify_usb_device_os(os_variant_t detected_os) {
-    bool is_mac = (detected_os == OS_MACOS || detected_os == OS_IOS);
-    keymap_config.swap_lctl_lgui = is_mac;
-    keymap_config.swap_rctl_rgui = is_mac;
+void housekeeping_task_user(void) {
+    static os_variant_t last_os = OS_UNSURE;
+    os_variant_t os = detected_host_os();
+    if (os != OS_UNSURE && os != last_os) {
+        last_os = os;
+        bool is_mac = (os == OS_MACOS || os == OS_IOS);
+        keymap_config.swap_lctl_lgui = is_mac;
+        keymap_config.swap_rctl_rgui = is_mac;
+        eeconfig_update_keymap(keymap_config.raw);
+        uprintf("os poll: %d swap=%d\n", os, is_mac);
+    }
 }
 
 void pointing_device_init_user(void) {
@@ -39,6 +50,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             case SCR_MOD:
                 scroll_mode = true;
                 return false;
+            case MAC_BACK:
+                if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS) {
+                    tap_code16(LGUI(KC_LBRC));
+                } else {
+                    tap_code16(KC_WBAK);
+                }
+                return false;
         }
     } else {
         if (layer_state_is(3) && keycode == CTL_T(KC_A)) {
@@ -50,17 +68,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
                 scroll_axis = 0;
                 scroll_accu_x = 0;
                 scroll_accu_y = 0;
-                return false;
-        }
-    }
-    if (record->event.pressed) {
-        switch (keycode) {
-            case MAC_BACK:
-                if (detected_host_os() == OS_MACOS || detected_host_os() == OS_IOS) {
-                    tap_code16(LGUI(KC_LBRC));
-                } else {
-                    tap_code16(KC_WBAK);
-                }
                 return false;
         }
     }
