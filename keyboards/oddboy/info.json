@@ -50,19 +50,6 @@
     },
     "diode_direction": "COL2ROW",
     "url": "",
-    "features": {
-        "bootmagic": true,
-        "mousekey": true,
-        "extrakey": true,
-        "nkro": true,
-        "tap_dance": false,
-        "combo": false,
-        "key_override": false,
-        "oled": false,
-        "wpm": false,
-        "autocorrect": false,
-        "caps_word": false
-    },
     "debounce": 5,
     "tapping": {
         "term": 200,
