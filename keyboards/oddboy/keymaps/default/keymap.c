@@ -15,6 +15,26 @@ static int8_t scroll_axis = 0;  // 0=undecided, 1=horizontal, -1=vertical
 #define SCROLL_DIVISOR 100
 #define SCROLL_LOCK_THRESHOLD 50
 
+// ── Ball-to-key layer mappings ─────────────────────────────────────────────
+// Add one entry per layer where trackball movement should send keycodes.
+// left/right map to X axis, up/down map to Y axis.
+typedef struct {
+    uint8_t  layer;
+    uint16_t left;
+    uint16_t right;
+    uint16_t up;
+    uint16_t down;
+} ball_key_layer_t;
+
+#define BALL_KEY_THRESHOLD 80
+
+static const ball_key_layer_t ball_key_layers[] = {
+    { 2, KC_MPRV, KC_MNXT, KC_VOLU, KC_VOLD },
+};
+
+static int16_t ball_key_accu_x = 0;
+static int16_t ball_key_accu_y = 0;
+
 void keyboard_post_init_user(void) {
     keymap_config.swap_lctl_lgui = true;
     keymap_config.swap_rctl_rgui = true;
@@ -75,6 +95,32 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
+    // Ball-to-key: check if the highest active layer has a mapping
+    uint8_t cur_layer = get_highest_layer(layer_state);
+    for (uint8_t i = 0; i < sizeof(ball_key_layers) / sizeof(ball_key_layers[0]); i++) {
+        if (ball_key_layers[i].layer == cur_layer) {
+            ball_key_accu_x += mouse_report.x;
+            ball_key_accu_y += mouse_report.y;
+            if (ball_key_accu_x <= -BALL_KEY_THRESHOLD) {
+                tap_code16(ball_key_layers[i].left);
+                ball_key_accu_x = 0;
+            } else if (ball_key_accu_x >= BALL_KEY_THRESHOLD) {
+                tap_code16(ball_key_layers[i].right);
+                ball_key_accu_x = 0;
+            }
+            if (ball_key_accu_y <= -BALL_KEY_THRESHOLD) {
+                tap_code16(ball_key_layers[i].up);
+                ball_key_accu_y = 0;
+            } else if (ball_key_accu_y >= BALL_KEY_THRESHOLD) {
+                tap_code16(ball_key_layers[i].down);
+                ball_key_accu_y = 0;
+            }
+            mouse_report.x = 0;
+            mouse_report.y = 0;
+            return mouse_report;
+        }
+    }
+
     if (scroll_mode) {
         scroll_accu_x += mouse_report.x;
         scroll_accu_y += mouse_report.y;
