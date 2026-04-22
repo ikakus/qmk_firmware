@@ -14,6 +14,7 @@ static int16_t scroll_accu_y = 0;
 static int8_t scroll_axis = 0;  // 0=undecided, 1=horizontal, -1=vertical
 #define SCROLL_DIVISOR 100
 #define SCROLL_LOCK_THRESHOLD 50
+#define SCROLL_UNLOCK_THRESHOLD 150
 
 // ── Ball-to-key layer mappings ─────────────────────────────────────────────
 // Add one entry per layer where trackball movement should send keycodes.
@@ -133,13 +134,25 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
         }
 
         if (scroll_axis == 1) {
-            mouse_report.h = scroll_accu_x / SCROLL_DIVISOR;
-            scroll_accu_x %= SCROLL_DIVISOR;
-            scroll_accu_y = 0;
+            if (abs(scroll_accu_y) > SCROLL_UNLOCK_THRESHOLD) {
+                scroll_axis = 0;
+                scroll_accu_x = 0;
+                scroll_accu_y = 0;
+            } else {
+                mouse_report.h = scroll_accu_x / SCROLL_DIVISOR;
+                scroll_accu_x %= SCROLL_DIVISOR;
+                // do not zero scroll_accu_y — let it accumulate for unlock detection
+            }
         } else if (scroll_axis == -1) {
-            mouse_report.v = -(scroll_accu_y / SCROLL_DIVISOR);
-            scroll_accu_y %= SCROLL_DIVISOR;
-            scroll_accu_x = 0;
+            if (abs(scroll_accu_x) > SCROLL_UNLOCK_THRESHOLD) {
+                scroll_axis = 0;
+                scroll_accu_x = 0;
+                scroll_accu_y = 0;
+            } else {
+                mouse_report.v = -(scroll_accu_y / SCROLL_DIVISOR);
+                scroll_accu_y %= SCROLL_DIVISOR;
+                // do not zero scroll_accu_x — let it accumulate for unlock detection
+            }
         }
 
         mouse_report.x = 0;
