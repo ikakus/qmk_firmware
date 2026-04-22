@@ -19,22 +19,38 @@ static int8_t scroll_axis = 0;  // 0=undecided, 1=horizontal, -1=vertical
 // ── Ball-to-key layer mappings ─────────────────────────────────────────────
 // Add one entry per layer where trackball movement should send keycodes.
 // left/right map to X axis, up/down map to Y axis.
+// one_shot_x / one_shot_y: fire once per gesture; won't fire again until ball
+// stops for BALL_KEY_STOP_MS and restarts. Use false for keys that should
+// repeat (volume) and true for keys that should fire once (prev/next track).
 typedef struct {
     uint8_t  layer;
     uint16_t left;
     uint16_t right;
     uint16_t up;
     uint16_t down;
+    bool     one_shot_x;
+    bool     one_shot_y;
 } ball_key_layer_t;
 
-#define BALL_KEY_THRESHOLD 80
+#define BALL_KEY_THRESHOLD         80   // accumulator threshold for debounce axes
+#define BALL_KEY_ONESHOT_THRESHOLD 200  // minimum distance before one-shot fires
+#define BALL_KEY_DEBOUNCE          200  // ms between repeats (non-one-shot axes)
+#define BALL_KEY_STOP_MS           80   // ms of no movement = gesture ended / axis unlock
+#define BALL_KEY_AXIS_LOCK         40   // accumulator to commit to an axis
 
 static const ball_key_layer_t ball_key_layers[] = {
-    { 2, KC_MPRV, KC_MNXT, KC_VOLU, KC_VOLD },
+    { 2, KC_MPRV, KC_MNXT, KC_VOLU, KC_VOLD, true, false },
 };
 
-static int16_t ball_key_accu_x = 0;
-static int16_t ball_key_accu_y = 0;
+static int16_t  ball_key_accu_x       = 0;
+static int16_t  ball_key_accu_y       = 0;
+static uint16_t ball_key_timer_x      = 0;
+static uint16_t ball_key_timer_y      = 0;
+static uint16_t ball_key_last_move_x  = 0;
+static uint16_t ball_key_last_move_y  = 0;
+static bool     ball_key_fired_x      = false;
+static bool     ball_key_fired_y      = false;
+static int8_t   ball_key_axis         = 0;  // 0=undecided, 1=X locked, -1=Y locked
 
 void keyboard_post_init_user(void) {
     keymap_config.swap_lctl_lgui = true;
@@ -100,21 +116,70 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
     uint8_t cur_layer = get_highest_layer(layer_state);
     for (uint8_t i = 0; i < sizeof(ball_key_layers) / sizeof(ball_key_layers[0]); i++) {
         if (ball_key_layers[i].layer == cur_layer) {
+            // track last movement time
+            if (mouse_report.x != 0) ball_key_last_move_x = timer_read();
+            if (mouse_report.y != 0) ball_key_last_move_y = timer_read();
+            uint16_t idle_x = timer_elapsed(ball_key_last_move_x);
+            uint16_t idle_y = timer_elapsed(ball_key_last_move_y);
+
+            // reset one-shot lock and axis lock when ball has been still long enough
+            if (idle_x > BALL_KEY_STOP_MS && idle_y > BALL_KEY_STOP_MS) {
+                ball_key_axis = 0;
+                ball_key_accu_x = 0;
+                ball_key_accu_y = 0;
+            }
+            if (ball_key_fired_x && idle_x > BALL_KEY_STOP_MS) ball_key_fired_x = false;
+            if (ball_key_fired_y && idle_y > BALL_KEY_STOP_MS) ball_key_fired_y = false;
+
             ball_key_accu_x += mouse_report.x;
             ball_key_accu_y += mouse_report.y;
-            if (ball_key_accu_x <= -BALL_KEY_THRESHOLD) {
-                tap_code16(ball_key_layers[i].left);
-                ball_key_accu_x = 0;
-            } else if (ball_key_accu_x >= BALL_KEY_THRESHOLD) {
-                tap_code16(ball_key_layers[i].right);
-                ball_key_accu_x = 0;
+
+            // axis lock: commit to dominant axis once it pulls ahead
+            if (ball_key_axis == 0) {
+                if (abs(ball_key_accu_x) > BALL_KEY_AXIS_LOCK && abs(ball_key_accu_x) > abs(ball_key_accu_y))
+                    ball_key_axis = 1;
+                else if (abs(ball_key_accu_y) > BALL_KEY_AXIS_LOCK && abs(ball_key_accu_y) > abs(ball_key_accu_x))
+                    ball_key_axis = -1;
             }
-            if (ball_key_accu_y <= -BALL_KEY_THRESHOLD) {
-                tap_code16(ball_key_layers[i].up);
-                ball_key_accu_y = 0;
-            } else if (ball_key_accu_y >= BALL_KEY_THRESHOLD) {
-                tap_code16(ball_key_layers[i].down);
-                ball_key_accu_y = 0;
+            // suppress the non-dominant axis
+            if (ball_key_axis == 1)  ball_key_accu_y = 0;
+            if (ball_key_axis == -1) ball_key_accu_x = 0;
+
+            bool can_x = ball_key_layers[i].one_shot_x
+                ? !ball_key_fired_x
+                : timer_elapsed(ball_key_timer_x) > BALL_KEY_DEBOUNCE;
+            int16_t thr_x = ball_key_layers[i].one_shot_x ? BALL_KEY_ONESHOT_THRESHOLD : BALL_KEY_THRESHOLD;
+            int16_t thr_y = ball_key_layers[i].one_shot_y ? BALL_KEY_ONESHOT_THRESHOLD : BALL_KEY_THRESHOLD;
+
+            if (can_x) {
+                if (ball_key_accu_x <= -thr_x) {
+                    tap_code16(ball_key_layers[i].left);
+                    ball_key_accu_x = 0;
+                    if (ball_key_layers[i].one_shot_x) ball_key_fired_x = true;
+                    else ball_key_timer_x = timer_read();
+                } else if (ball_key_accu_x >= thr_x) {
+                    tap_code16(ball_key_layers[i].right);
+                    ball_key_accu_x = 0;
+                    if (ball_key_layers[i].one_shot_x) ball_key_fired_x = true;
+                    else ball_key_timer_x = timer_read();
+                }
+            }
+
+            bool can_y = ball_key_layers[i].one_shot_y
+                ? !ball_key_fired_y
+                : timer_elapsed(ball_key_timer_y) > BALL_KEY_DEBOUNCE;
+            if (can_y) {
+                if (ball_key_accu_y <= -thr_y) {
+                    tap_code16(ball_key_layers[i].up);
+                    ball_key_accu_y = 0;
+                    if (ball_key_layers[i].one_shot_y) ball_key_fired_y = true;
+                    else ball_key_timer_y = timer_read();
+                } else if (ball_key_accu_y >= thr_y) {
+                    tap_code16(ball_key_layers[i].down);
+                    ball_key_accu_y = 0;
+                    if (ball_key_layers[i].one_shot_y) ball_key_fired_y = true;
+                    else ball_key_timer_y = timer_read();
+                }
             }
             mouse_report.x = 0;
             mouse_report.y = 0;
