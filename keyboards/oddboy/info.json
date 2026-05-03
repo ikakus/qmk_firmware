@@ -24,9 +24,6 @@
             },
             "watchdog": false
         },
-        "handedness": {
-            "pin": "GP25"
-        },
         "usb_detect": {
             "enabled": true
         }

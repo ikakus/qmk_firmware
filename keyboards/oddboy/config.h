@@ -8,6 +8,7 @@
 
 #define SPLIT_TRANSPORT_MIRROR
 #define SPLIT_POINTING_ENABLE
+#define MASTER_RIGHT
 
 /* ── PMW3360 SPI ── */
 #define SPI_DRIVER   SPID0
@@ -15,10 +16,18 @@
 #define SPI_MOSI_PIN GP3
 #define SPI_MISO_PIN GP4
 #define PMW33XX_CS_PIN GP5
-#define POINTING_DEVICE_RIGHT
+#define POINTING_DEVICE_COMBINED
+
+/* ── Joystick (left half, scroll) ── */
+#define JOYSTICK_X_PIN          GP28
+#define JOYSTICK_Y_PIN          GP29
+#define JOYSTICK_SW_PIN         GP24
+#define JOYSTICK_CENTER         512
+#define JOYSTICK_DEADZONE       150
+#define JOYSTICK_SCROLL_DIVISOR 4096
 #define PMW33XX_CPI 2000
 #define ROTATIONAL_TRANSFORM_ANGLE -29
-#define POINTING_DEVICE_INVERT_X
+#define POINTING_DEVICE_INVERT_X_RIGHT
 
 /* ── Auto Mouse Layer ── */
 #define POINTING_DEVICE_AUTO_MOUSE_ENABLE

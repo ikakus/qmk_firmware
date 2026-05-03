@@ -55,6 +55,7 @@ static int8_t   ball_key_axis         = 0;  // 0=undecided, 1=X locked, -1=Y loc
 void keyboard_post_init_user(void) {
     keymap_config.swap_lctl_lgui = true;
     keymap_config.swap_rctl_rgui = true;
+    debug_enable = true;
 }
 
 void housekeeping_task_user(void) {
@@ -111,7 +112,21 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     return true;
 }
 
-report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
+report_mouse_t pointing_device_task_combined_user(report_mouse_t left_report, report_mouse_t mouse_report) {
+    // joystick (left half) → scroll
+    static int16_t joy_accu_x = 0, joy_accu_y = 0;
+    joy_accu_x     += left_report.x;
+    joy_accu_y     += left_report.y;
+    mouse_report.h += joy_accu_x / JOYSTICK_SCROLL_DIVISOR;
+    joy_accu_x     %= JOYSTICK_SCROLL_DIVISOR;
+    mouse_report.v -= joy_accu_y / JOYSTICK_SCROLL_DIVISOR;
+    joy_accu_y     %= JOYSTICK_SCROLL_DIVISOR;
+    mouse_report.buttons |= left_report.buttons;
+    // joystick x/y consumed as scroll — clear so combine doesn't add them to cursor
+    left_report.x = 0;
+    left_report.y = 0;
+
+    // trackball (right half) — existing logic follows
     // Ball-to-key: check if the highest active layer has a mapping
     uint8_t cur_layer = get_highest_layer(layer_state);
     for (uint8_t i = 0; i < sizeof(ball_key_layers) / sizeof(ball_key_layers[0]); i++) {
@@ -183,7 +198,7 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
             }
             mouse_report.x = 0;
             mouse_report.y = 0;
-            return mouse_report;
+            return pointing_device_combine_reports(left_report, mouse_report);
         }
     }
 
@@ -223,7 +238,7 @@ report_mouse_t pointing_device_task_user(report_mouse_t mouse_report) {
         mouse_report.x = 0;
         mouse_report.y = 0;
     }
-    return mouse_report;
+    return pointing_device_combine_reports(left_report, mouse_report);
 }
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
